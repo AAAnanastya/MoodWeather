@@ -1,38 +1,44 @@
-import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
-import './globals.css';
+import type { Metadata } from 'next'
+import { Geist, Geist_Mono } from 'next/font/google'
+import './globals.css'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
-});
+})
 
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
-});
+})
 
 export const metadata: Metadata = {
-  title: 'МетеоНастроение - Анализ влияния погоды на настроение',
+  title: 'MoodWeather',
   description:
     'Исследуйте корреляцию между вашим настроением и погодными условиями. Отслеживайте, как температура, осадки и солнечная активность влияют на ваше эмоциональное состояние.',
-  keywords: 'погода, настроение, корреляция, эмоции, метеозависимость, самоанализ, психология',
+  keywords:
+    'погода, настроение, корреляция, эмоции, метеозависимость, самоанализ, психология',
   openGraph: {
-    title: 'МетеоНастроение - Анализ влияния погоды на настроение',
-    description: 'Исследуйте взаимосвязь между погодой и вашим эмоциональным состоянием',
+    title: 'MoodWeather',
+    description:
+      'Исследуйте взаимосвязь между погодой и вашим эмоциональным состоянием',
     type: 'website',
     locale: 'ru_RU',
   },
-};
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
     <html lang="ru" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>{children}</body>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        {children}
+      </body>
     </html>
-  );
+  )
 }
