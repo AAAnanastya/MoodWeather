@@ -1,8 +1,12 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #e9e7fd;
+  --foreground: #1d2a37;
+  --helperText: #6b7281;
+  --maskColor: #2e242c;
+  --lightAccentColor: #f5c6c7;
+  --deepAccentColor: #a87dff;
 }
 
 @theme inline {
@@ -13,9 +17,14 @@
 }
 
 @media (prefers-color-scheme: dark) {
+  /* в дейстивительности это светлая тема (так задано на время разработки) */
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #e9e7fd;
+    --foreground: #1d2a37;
+    --helperText: #6b7281;
+    --maskColor: #423d55;
+    --lightAccentColor: #f5c6c7;
+    --deepAccentColor: #a87dff;
   }
 }
 

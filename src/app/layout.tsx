@@ -1,3 +1,4 @@
+import DynamicHeader from '@/components/DynamicHeader'
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
@@ -35,9 +36,10 @@ export default function RootLayout({
   return (
     <html lang="ru" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased p-6 md:p-8 lg:px-14`}
       >
-        {children}
+        <DynamicHeader />
+        <main>{children}</main>
       </body>
     </html>
   )
