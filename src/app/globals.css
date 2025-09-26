@@ -7,6 +7,10 @@
   --maskColor: #2e242c;
   --lightAccentColor: #f5c6c7;
   --deepAccentColor: #a87dff;
+  --darkAccentColor: #9c8ced;
+  --lavenderPurple: #7c7ff6;
+  --deepPurple: #807ffd;
+  --lightPurple: #c69bd2;
 }
 
 @theme inline {
@@ -25,6 +29,10 @@
     --maskColor: #423d55;
     --lightAccentColor: #f5c6c7;
     --deepAccentColor: #a87dff;
+    --darkAccentColor: #9c8ced;
+    --lavenderPurple: #7c7ff6;
+    --deepPurple: #807ffd;
+    --lightPurple: #c69bd2;
   }
 }
 
