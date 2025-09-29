@@ -1,3 +1,5 @@
+/** === Доработать hover эффекты + откорректировать анимацию крестика=== */
+
 'use client'
 
 import { AnimatePresence, motion } from 'framer-motion'
@@ -150,7 +152,7 @@ export default function StaggeredMenuSidebar({
                 exit={{ y: -20, opacity: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                Закрыть
+                Close
               </motion.span>
             ) : (
               <motion.span
@@ -161,7 +163,7 @@ export default function StaggeredMenuSidebar({
                 exit={{ y: 20, opacity: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                Меню
+                Menu
               </motion.span>
             )}
           </AnimatePresence>

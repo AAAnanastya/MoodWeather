@@ -13,12 +13,12 @@
   --lightPurple: #c69bd2;
 }
 
-@theme inline {
+/* @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
+} */
 
 @media (prefers-color-scheme: dark) {
   /* в дейстивительности это светлая тема (так задано на время разработки) */
@@ -33,6 +33,20 @@
     --lavenderPurple: #7c7ff6;
     --deepPurple: #807ffd;
     --lightPurple: #c69bd2;
+  }
+}
+
+@layer components {
+  .weatherHelperMark {
+    font-size: 0.7rem;
+    line-height: 1rem;
+    color: var(--helperText);
+  }
+
+  .weatherHelperValue {
+    font-size: 1rem;
+    font-weight: bold;
+    line-height: 1.25rem;
   }
 }
 

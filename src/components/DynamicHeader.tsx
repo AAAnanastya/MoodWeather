@@ -108,7 +108,7 @@ function HeaderContent({
                 }}
                 className="md:hidden text-xs text-[var(--helperText)]"
               >
-                Главная
+                Dashboard
               </motion.p>
             )}
           </AnimatePresence>
@@ -117,14 +117,14 @@ function HeaderContent({
 
       <StaggeredMenuSidebar
         items={[
-          { label: 'Главная', ariaLabel: 'Главная', link: '/' },
-          { label: 'Аналитика', ariaLabel: 'Аналитика', link: '/analytics' },
+          { label: 'Dashboard', ariaLabel: 'Dashboard', link: '/' },
+          { label: 'Analytics', ariaLabel: 'Analytics', link: '/analytics' },
           {
-            label: 'Достижения',
-            ariaLabel: 'Достижения',
+            label: 'Achievements',
+            ariaLabel: 'Achievements',
             link: '/achievements',
           },
-          { label: 'Настройки', ariaLabel: 'Настройки', link: '/settings' },
+          { label: 'Settings', ariaLabel: 'Settings', link: '/settings' },
         ]}
       />
     </div>
@@ -134,9 +134,9 @@ function HeaderContent({
 function getPageTitle(pathname: string): string {
   const titles: { [key: string]: string } = {
     '/': 'MoodWeather',
-    '/analytics': 'Аналитика',
-    '/achievements': 'Достижения',
-    '/settings': 'Настройки',
+    '/analytics': 'Analytics',
+    '/achievements': 'Achievements',
+    '/settings': 'Settings',
   }
   return titles[pathname] || 'Страница 404'
 }

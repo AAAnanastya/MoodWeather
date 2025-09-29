@@ -15,7 +15,7 @@ const CardWrapper: FC<CardWrapperProps> = ({
 }) => {
   return (
     <div
-      className={`rounded-3xl p-6 pt-7 w-full ${className}`}
+      className={`rounded-3xl p-6 w-full ${className}`}
       style={{
         boxShadow:
           '0 1px 2px 0 rgba(156, 140, 237, 0.1), 0 1px 3px 1px rgba(156, 140, 237, 0.1)',
