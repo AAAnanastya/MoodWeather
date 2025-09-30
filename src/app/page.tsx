@@ -1,5 +1,5 @@
-import CardWrapper from '@/components/CardWrapper'
-import WeatherCard from '@/components/WeatherCard'
+import CardWrapper from '@/components/base/CardWrapper'
+import WeatherCard from '@/components/weather/WeatherCard'
 
 export default function Home() {
   return (
