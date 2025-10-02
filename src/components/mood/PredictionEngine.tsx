@@ -32,7 +32,11 @@ export function PredictionEngine(): ReactElement {
       time: new Date().toISOString(),
     }
 
-    const fallbackPrediction = MoodPredictor.predict([], fallbackWeather)
+    const fallbackAnalysis = MoodPredictor.predictWithAnalysis(
+      [],
+      fallbackWeather
+    )
+    const fallbackPrediction = fallbackAnalysis.prediction
     const fallbackRecommendation = fallbackPrediction.recommendations[0]
 
     return (
@@ -42,7 +46,7 @@ export function PredictionEngine(): ReactElement {
           weather={fallbackWeather}
           recommendation={fallbackRecommendation}
         />
-        <p className="text-xs text-[var--helperText] mt-2 opacity-50">
+        <p className="text-xs text-[var(--helperText)] mt-2 opacity-50">
           *Not enough data to form an accurate prediction
         </p>
       </div>
