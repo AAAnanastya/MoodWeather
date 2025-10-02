@@ -6,9 +6,13 @@ interface CityCoords {
   lon: number
 }
 
+function getCityCoordinates(cityName: string = 'Moscow'): CityCoords {
+  const cities: Record<string, CityCoords> = citiesJson
+  return cities[cityName] ?? cities['Moscow']
+}
+
 export async function getCurrentWeather(city: string) {
   const cities: Record<string, CityCoords> = citiesJson
-
   const { lat, lon } = cities[city] ?? cities['Moscow']
 
   const url = `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(
@@ -62,7 +66,7 @@ export async function getCurrentWeather(city: string) {
   }
 }
 
-export async function getWeatherForecast(): Promise<WeatherEntry> {
+export async function getTommorowWeatherForecast(): Promise<WeatherEntry> {
   try {
     const response = await fetch(
       `https://api.open-meteo.com/v1/forecast?latitude=55.7558&longitude=37.6173&daily=weathercode,temperature_2m_max&timezone=Europe/Moscow`
@@ -89,6 +93,51 @@ export async function getWeatherForecast(): Promise<WeatherEntry> {
       time: new Date(Date.now() + 24 * 60 * 60 * 1000)
         .toISOString()
         .split('T')[0],
+    }
+  }
+}
+
+export async function getWeatherForecast(
+  city: string = 'Moscow'
+): Promise<WeatherEntry> {
+  try {
+    const { lat, lon } = getCityCoordinates(city)
+
+    const response = await fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=2`
+    )
+
+    if (!response.ok) {
+      throw new Error('Weather API request failed')
+    }
+
+    const data = await response.json()
+
+    if (!data.daily || !data.daily.time || data.daily.time.length < 2) {
+      throw new Error('Invalid weather data structure')
+    }
+
+    const tomorrowIndex = 1
+
+    const tomorrowWeather = {
+      temperature: Math.round(data.daily.temperature_2m_max[tomorrowIndex]),
+      weathercode: data.daily.weathercode[tomorrowIndex],
+      time: data.daily.time[tomorrowIndex],
+      temperatureMin: Math.round(data.daily.temperature_2m_min[tomorrowIndex]),
+    }
+
+    return tomorrowWeather
+  } catch (error) {
+    console.error('Failed to fetch weather forecast:', error)
+
+    // Заглушка с данными на завтра
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+
+    return {
+      temperature: 15,
+      weathercode: 2,
+      time: tomorrow.toISOString().split('T')[0],
     }
   }
 }

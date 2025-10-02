@@ -1,13 +1,18 @@
 'use client'
 
 import { Prediction, WeatherEntry } from '@/store/mood-store'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 interface PredictionData {
   prediction: Prediction
   weather?: WeatherEntry
   recommendation: string
   timestamp: string
+  analysis?: {
+    similarDaysCount: number
+    totalDaysAnalyzed: number
+    confidenceFactors: string[]
+  }
 }
 
 export function useDailyPrediction() {
@@ -17,33 +22,43 @@ export function useDailyPrediction() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    const fetchPrediction = async () => {
-      try {
-        setIsLoading(true)
-        setError(null)
+  const fetchPrediction = useCallback(async () => {
+    try {
+      setIsLoading(true)
+      setError(null)
 
-        const response = await fetch('/api/prediction/daily')
+      const response = await fetch('/api/daily-prediction', {
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      })
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch prediction')
-        }
-
-        const data: PredictionData = await response.json()
-        setPredictionData(data)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error')
-      } finally {
-        setIsLoading(false)
+      if (!response.ok) {
+        throw new Error('Failed to fetch prediction')
       }
-    }
 
-    fetchPrediction()
+      const data: PredictionData = await response.json()
+      setPredictionData(data)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error')
+      console.error('Prediction fetch error:', err)
+    } finally {
+      setIsLoading(false)
+    }
   }, [])
+
+  const refetch = useCallback(() => {
+    fetchPrediction()
+  }, [fetchPrediction])
+
+  useEffect(() => {
+    fetchPrediction()
+  }, [fetchPrediction])
 
   return {
     predictionData,
     isLoading,
     error,
+    refetch,
   }
 }

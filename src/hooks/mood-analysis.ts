@@ -1,118 +1,222 @@
 import { MoodEntry, Prediction } from '@/store/mood-store'
 import { WeatherEntry } from '@/store/weather-store'
 
+export interface AnalysisResult {
+  prediction: Prediction
+  similarDaysCount: number
+  totalDaysAnalyzed: number
+  confidenceFactors: string[]
+  similarDays: MoodEntry[]
+}
+
 export class MoodPredictor {
-  static predict(
+  static predictWithAnalysis(
     moodHistory: MoodEntry[],
     weatherForecast: WeatherEntry
-  ): Prediction {
-    if (moodHistory.length === 0) {
-      return this.getDefaultPrediction(weatherForecast)
-    }
+  ): AnalysisResult {
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    console.log('moodHistory', moodHistory)
 
-    const similarDays = moodHistory.filter((entry) =>
-      this.isWeatherSimilar(entry.weather, weatherForecast)
+    const validMoodHistory = moodHistory.filter(
+      (entry) =>
+        entry &&
+        typeof entry.moodScore === 'number' &&
+        entry.weather &&
+        new Date(entry.date) >= thirtyDaysAgo
     )
 
-    if (similarDays.length > 0) {
-      return this.analyzeSimilarDays(similarDays, weatherForecast)
-    } else {
-      return this.analyzeGeneralPattern(moodHistory, weatherForecast)
+    const totalDaysAnalyzed = validMoodHistory.length
+
+    if (totalDaysAnalyzed === 0) {
+      const prediction = this.getDefaultPrediction()
+      return {
+        prediction,
+        similarDaysCount: 0,
+        totalDaysAnalyzed: 0,
+        confidenceFactors: ['no_recent_data_using_default'],
+        similarDays: [],
+      }
     }
-  }
 
-  private static analyzeGeneralPattern(
-    moodHistory: MoodEntry[],
-    forecast: WeatherEntry
-  ): Prediction {
-    // Анализ общих тенденций без точного совпадения погоды
-    const avgMood =
-      moodHistory.reduce((sum, entry) => sum + entry.moodScore, 0) /
-      moodHistory.length
+    const similarDays = this.findSimilarDays(validMoodHistory, weatherForecast)
+    const similarDaysCount = similarDays.length
 
-    // Учитываем влияние конкретной погоды на общий тренд
-    const weatherImpact = this.calculateWeatherImpact(forecast)
-    const adjustedMood = avgMood + weatherImpact
+    let prediction: Prediction
+    let confidenceFactors: string[] = []
 
-    const type = this.getMoodType(adjustedMood)
-    const confidence = 0.5 // Средняя уверенность для общих паттернов
+    if (similarDaysCount > 0) {
+      prediction = this.predictFromSimilarDays(similarDays, weatherForecast)
+      confidenceFactors.push(`found_${similarDaysCount}_similar_days`)
+    } else {
+      prediction = this.predictFromMonthlyPatterns(
+        validMoodHistory,
+        weatherForecast
+      )
+      confidenceFactors.push('using_monthly_patterns')
+    }
+
+    if (totalDaysAnalyzed >= 14) confidenceFactors.push('good_monthly_history')
+    if (totalDaysAnalyzed >= 25)
+      confidenceFactors.push('excellent_monthly_coverage')
 
     return {
-      type,
-      confidence,
-      recommendations: this.getRecommendations(type, forecast),
+      prediction,
+      similarDaysCount,
+      totalDaysAnalyzed,
+      confidenceFactors,
+      similarDays: similarDays,
     }
   }
 
-  private static calculateWeatherImpact(weather: WeatherEntry): number {
-    // Влияние погоды на настроение
-    const isSunny = [0, 1].includes(weather.weathercode)
-    const isRainy = [61, 63, 65, 80, 81, 82].includes(weather.weathercode)
-    const isCold = weather.temperature < 10
-    const isPerfectTemp = weather.temperature >= 18 && weather.temperature <= 25
-
-    if (isSunny && isPerfectTemp) return 1.5
-    if (isSunny) return 1.0
-    if (isRainy && isCold) return -1.5
-    if (isRainy) return -0.5
-    if (isCold) return -1.0
-
-    return 0
-  }
-
-  private static isWeatherSimilar(a: WeatherEntry, b: WeatherEntry): boolean {
-    const tempDiff = Math.abs(a.temperature - b.temperature)
-    const sameWeatherCode = a.weathercode === b.weathercode
-
-    return tempDiff <= 5 && sameWeatherCode
-  }
-
-  private static analyzeSimilarDays(
+  private static predictFromSimilarDays(
     similarDays: MoodEntry[],
     forecast: WeatherEntry
   ): Prediction {
-    const avgMood =
-      similarDays.reduce((sum, entry) => sum + entry.moodScore, 0) /
-      similarDays.length
-
-    const type = this.getMoodType(avgMood)
-    const confidence = Math.min(similarDays.length / 10, 0.95)
+    const moodDistribution = this.analyzeMoodDistribution(similarDays)
+    const dominantMood = this.getDominantMoodType(moodDistribution)
+    const avgScoreForDominantMood =
+      moodDistribution[dominantMood]?.avgScore || 6
+    const confidence = this.calculateSemanticConfidence(
+      similarDays.length,
+      moodDistribution
+    )
 
     return {
-      type,
+      type: dominantMood,
       confidence,
-      recommendations: this.getRecommendations(type, forecast),
+      recommendations: this.getRecommendations(dominantMood),
+      expectedMoodScore: Math.round(avgScoreForDominantMood),
     }
   }
 
-  private static getMoodType(avgMood: number): Prediction['type'] {
-    if (avgMood >= 8) return 'POSITIVE'
-    if (avgMood >= 6) return 'NEUTRAL'
-    if (avgMood >= 4) return 'COZY'
-    return 'RELAXED'
-  }
-
-  private static getDefaultPrediction(weather: WeatherEntry): Prediction {
-    const isSunny = [0, 1].includes(weather.weathercode)
-    const isRainy = [61, 63, 65, 80, 81, 82].includes(weather.weathercode)
-    const isCold = weather.temperature < 10
-
-    let type: Prediction['type'] = 'NEUTRAL'
-    if (isSunny) type = 'POSITIVE'
-    if (isRainy) type = 'COZY'
-    if (isCold) type = 'RELAXED'
+  private static predictFromMonthlyPatterns(
+    moodHistory: MoodEntry[],
+    forecast: WeatherEntry
+  ): Prediction {
+    const monthlyDistribution = this.analyzeMoodDistribution(moodHistory)
+    const mostFrequentMood = this.getMostFrequentMood(monthlyDistribution)
+    const confidence = Math.min(0.5 + moodHistory.length * 0.01, 0.8)
 
     return {
-      type,
-      confidence: 0.3,
-      recommendations: this.getRecommendations(type, weather),
+      type: mostFrequentMood,
+      confidence,
+      recommendations: this.getRecommendations(mostFrequentMood),
+      expectedMoodScore: Math.round(
+        monthlyDistribution[mostFrequentMood]?.avgScore || 6
+      ),
     }
   }
 
-  private static getRecommendations(
-    type: Prediction['type'],
-    weather: WeatherEntry
-  ): string[] {
+  private static analyzeMoodDistribution(
+    entries: MoodEntry[]
+  ): Record<string, { count: number; avgScore: number }> {
+    const distribution: Record<string, { count: number; avgScore: number }> = {}
+
+    entries.forEach((entry) => {
+      const moodType = this.getMoodTypeFromEntry(entry)
+
+      if (!distribution[moodType]) {
+        distribution[moodType] = { count: 0, avgScore: 0 }
+      }
+
+      distribution[moodType].count++
+      distribution[moodType].avgScore =
+        (distribution[moodType].avgScore * (distribution[moodType].count - 1) +
+          entry.moodScore) /
+        distribution[moodType].count
+    })
+
+    return distribution
+  }
+
+  private static getMoodTypeFromEntry(entry: MoodEntry): Prediction['type'] {
+    const textMood = entry.mood?.toLowerCase()
+    const expectedMoodType = this.getMoodType(entry.moodScore)
+
+    if (textMood === 'sad' && expectedMoodType !== 'SAD') {
+      return 'SAD'
+    }
+
+    if (textMood === 'happy' && expectedMoodType === 'SAD') {
+      return 'POSITIVE'
+    }
+
+    return expectedMoodType
+  }
+
+  private static getDominantMoodType(
+    distribution: Record<string, { count: number; avgScore: number }>
+  ): Prediction['type'] {
+    let dominantMood: Prediction['type'] = 'NEUTRAL'
+    let maxCount = 0
+
+    for (const [moodType, data] of Object.entries(distribution)) {
+      if (data.count > maxCount) {
+        maxCount = data.count
+        dominantMood = moodType as Prediction['type']
+      }
+    }
+
+    return dominantMood
+  }
+
+  private static getMostFrequentMood(
+    distribution: Record<string, { count: number; avgScore: number }>
+  ): Prediction['type'] {
+    return this.getDominantMoodType(distribution)
+  }
+
+  private static calculateSemanticConfidence(
+    similarDaysCount: number,
+    distribution: Record<string, { count: number; avgScore: number }>
+  ): number {
+    const baseConfidence = Math.min(0.4 + similarDaysCount * 0.1, 0.8)
+
+    const moodTypes = Object.keys(distribution)
+    if (moodTypes.length === 1) {
+      return Math.min(baseConfidence + 0.15, 0.9)
+    }
+
+    return baseConfidence
+  }
+
+  private static findSimilarDays(
+    moodHistory: MoodEntry[],
+    forecast: WeatherEntry
+  ): MoodEntry[] {
+    return moodHistory.filter((day) => {
+      if (!day.weather) return false
+
+      const tempDiff = Math.abs(day.weather.temperature - forecast.temperature)
+      if (tempDiff > 3) return false
+
+      const dayWeatherType = this.getSimpleWeatherType(day.weather.weathercode)
+      const forecastWeatherType = this.getSimpleWeatherType(
+        forecast.weathercode
+      )
+
+      return dayWeatherType === forecastWeatherType
+    })
+  }
+
+  private static getSimpleWeatherType(weathercode: number): string {
+    if ([0, 1].includes(weathercode)) return 'sunny'
+    if ([2, 3].includes(weathercode)) return 'cloudy'
+    if ([61, 63, 65, 66, 67, 80, 81, 82].includes(weathercode)) return 'rainy'
+    if ([71, 73, 75, 77, 85, 86].includes(weathercode)) return 'snowy'
+    if ([45, 48].includes(weathercode)) return 'foggy'
+    return 'other'
+  }
+
+  private static getMoodType(moodScore: number): Prediction['type'] {
+    if (moodScore >= 8) return 'POSITIVE'
+    if (moodScore >= 6) return 'NEUTRAL'
+    if (moodScore >= 4) return 'COZY'
+    return 'SAD'
+  }
+
+  private static getRecommendations(type: Prediction['type']): string[] {
     const baseRecommendations = {
       POSITIVE: [
         'Channel your energy into activity: go for a run, bike ride, or a hike in nature.',
@@ -152,5 +256,14 @@ export class MoodPredictor {
     }
 
     return baseRecommendations[type] || baseRecommendations.NEUTRAL
+  }
+
+  private static getDefaultPrediction(): Prediction {
+    return {
+      type: 'NEUTRAL',
+      confidence: 0.3,
+      recommendations: this.getRecommendations('NEUTRAL'),
+      expectedMoodScore: 6,
+    }
   }
 }

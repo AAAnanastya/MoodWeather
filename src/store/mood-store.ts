@@ -4,20 +4,23 @@ export type WeatherEntry = {
   temperature: number
   weathercode: number
   time: string
+  windspeed?: number
 }
 
 export type MoodEntry = {
   id: string
   date: string
   moodScore: number
+  mood?: string
   weather: WeatherEntry
   notes?: string
 }
 
-export type Prediction = {
-  type: 'POSITIVE' | 'NEUTRAL' | 'RELAXED' | 'COZY' | 'SAD'
+export interface Prediction {
+  type: 'POSITIVE' | 'NEUTRAL' | 'COZY' | 'RELAXED' | 'SAD'
   confidence: number
   recommendations: string[]
+  expectedMoodScore?: number
 }
 
 type MoodState = {
