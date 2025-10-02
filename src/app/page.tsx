@@ -1,4 +1,5 @@
 import CardWrapper from '@/components/base/CardWrapper'
+import { PredictionEngine } from '@/components/mood/PredictionEngine'
 import WeatherCard from '@/components/weather/WeatherCard'
 
 export default function Home() {
@@ -16,7 +17,7 @@ export default function Home() {
         className="lg:col-span-1 text-white"
         background="linear-gradient(to right, var(--lavenderPurple), var(--darkAccentColor), var(--lightPurple), var(--lightPurple))"
       >
-        <p>Mood forecast</p>
+        <PredictionEngine />
       </CardWrapper>
 
       <CardWrapper className="lg:col-span-1 lg:row-span-2">

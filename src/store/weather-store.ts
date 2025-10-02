@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-type WeatherEntry = {
+export type WeatherEntry = {
   temperature: number
   weathercode: number
   time: string

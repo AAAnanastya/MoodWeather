@@ -1,4 +1,5 @@
 import citiesJson from '@/store/cities.json'
+import { WeatherEntry } from '@/store/weather-store'
 
 interface CityCoords {
   lat: number
@@ -58,5 +59,36 @@ export async function getCurrentWeather(city: string) {
     dayNight: data.current.is_day ? 'day' : 'night',
     time: data.current.time,
     precipitationType: getPrecipitationType(data.current.weathercode),
+  }
+}
+
+export async function getWeatherForecast(): Promise<WeatherEntry> {
+  try {
+    const response = await fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=55.7558&longitude=37.6173&daily=weathercode,temperature_2m_max&timezone=Europe/Moscow`
+    )
+
+    if (!response.ok) {
+      throw new Error('Weather API request failed')
+    }
+
+    const data = await response.json()
+    const tomorrowIndex = 1
+
+    return {
+      temperature: Math.round(data.daily.temperature_2m_max[tomorrowIndex]),
+      weathercode: data.daily.weathercode[tomorrowIndex],
+      time: data.daily.time[tomorrowIndex],
+    }
+  } catch (error) {
+    console.error('Failed to fetch weather forecast:', error)
+
+    return {
+      temperature: 15,
+      weathercode: 0,
+      time: new Date(Date.now() + 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split('T')[0],
+    }
   }
 }
