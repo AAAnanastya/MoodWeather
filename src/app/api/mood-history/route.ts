@@ -20,7 +20,7 @@ export async function GET() {
       },
       {
         id: 3,
-        mood: 'sad',
+        mood: 'cozy',
         date: '2025-09-30',
         moodScore: 6,
         weather: { temperature: 11, weathercode: 3 }, // облачно
@@ -34,7 +34,7 @@ export async function GET() {
       },
       {
         id: 5,
-        mood: 'happy',
+        mood: 'cozy',
         date: '2025-09-26',
         moodScore: 7,
         weather: { temperature: 14, weathercode: 0 }, // ясно
