@@ -69,8 +69,10 @@ export default function MoodForm({ onClose }: MoodFormProps) {
         notes: notes.trim() || undefined,
       }
 
+      // Временно используем локальное сохранение без API
       await addMoodEntry(newMoodEntry)
 
+      // Закрываем форму только если нет ошибки
       if (!error) {
         onClose()
       }
@@ -133,61 +135,63 @@ export default function MoodForm({ onClose }: MoodFormProps) {
             </div>
           </div>
 
-          <label className="block text-sm font-medium mb-2">
-            Rate your mood:{' '}
-            <span className="text-[var(--deepPurple)] text-md font-bold">
-              {moodScore}/10
-            </span>
-          </label>
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Rate your mood:{' '}
+              <span className="text-[var(--deepPurple)] text-md font-bold">
+                {moodScore}/10
+              </span>
+            </label>
 
-          <div className="relative m-0">
-            <div className="absolute top-1/2 left-0 right-0 h-3 bg-gradient-to-r from-[var(--deepPurple)] via-[var(--lightPurple)] to-[var(--lightAccentColor)] rounded-full -translate-y-1/2"></div>
-            <div className="absolute top-1/2 left-0 right-0 flex justify-between pointer-events-none -translate-y-1/2 px-[10px]">
-              {[...Array(10)].map((_, i) => (
-                <div
-                  key={i}
-                  className={`w-1 h-5 rounded-full bg-white border border-[var(--maskColor)]/30`}
-                />
-              ))}
+            <div className="relative m-0">
+              <div className="absolute top-1/2 left-0 right-0 h-3 bg-gradient-to-r from-[var(--deepPurple)] via-[var(--lightPurple)] to-[var(--lightAccentColor)] rounded-full -translate-y-1/2"></div>
+              <div className="absolute top-1/2 left-0 right-0 flex justify-between pointer-events-none -translate-y-1/2 px-[10px]">
+                {[...Array(10)].map((_, i) => (
+                  <div
+                    key={i}
+                    className={`w-1 h-5 rounded-full bg-white border border-[var(--maskColor)]/30`}
+                  />
+                ))}
+              </div>
+
+              <input
+                type="range"
+                min="1"
+                max="10"
+                step="1"
+                value={moodScore}
+                onChange={(e) => setMoodScore(parseInt(e.target.value))}
+                disabled={isLoading}
+                className="relative w-full h-4 bg-transparent appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed z-10
+                  [&::-webkit-slider-thumb]:appearance-none
+                  [&::-webkit-slider-thumb]:h-7
+                  [&::-webkit-slider-thumb]:w-7
+                  [&::-webkit-slider-thumb]:rounded-full
+                  [&::-webkit-slider-thumb]:bg-[var(--deepPurple)]
+                  [&::-webkit-slider-thumb]:border-2
+                  [&::-webkit-slider-thumb]:border-white
+                  [&::-webkit-slider-thumb]:shadow-lg
+                  [&::-webkit-slider-thumb]:relative
+                  [&::-webkit-slider-thumb]:z-20
+                  [&::-moz-range-thumb]:h-7
+                  [&::-moz-range-thumb]:w-7
+                  [&::-moz-range-thumb]:rounded-full
+                  [&::-moz-range-thumb]:bg-[var(--deepPurple)]
+                  [&::-moz-range-thumb]:border-2
+                  [&::-moz-range-thumb]:border-white
+                  [&::-moz-range-thumb]:shadow-lg
+                  [&::-moz-range-thumb]:relative
+                  [&::-moz-range-thumb]:z-20"
+              />
             </div>
 
-            <input
-              type="range"
-              min="1"
-              max="10"
-              step="1"
-              value={moodScore}
-              onChange={(e) => setMoodScore(parseInt(e.target.value))}
-              disabled={isLoading}
-              className="relative w-full h-4 bg-transparent appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed z-10
-                [&::-webkit-slider-thumb]:appearance-none
-                [&::-webkit-slider-thumb]:h-7
-                [&::-webkit-slider-thumb]:w-7
-                [&::-webkit-slider-thumb]:rounded-full
-                [&::-webkit-slider-thumb]:bg-[var(--deepPurple)]
-                [&::-webkit-slider-thumb]:border-2
-                [&::-webkit-slider-thumb]:border-white
-                [&::-webkit-slider-thumb]:shadow-lg
-                [&::-webkit-slider-thumb]:relative
-                [&::-webkit-slider-thumb]:z-20
-                [&::-moz-range-thumb]:h-7
-                [&::-moz-range-thumb]:w-7
-                [&::-moz-range-thumb]:rounded-full
-                [&::-moz-range-thumb]:bg-[var(--deepPurple)]
-                [&::-moz-range-thumb]:border-2
-                [&::-moz-range-thumb]:border-white
-                [&::-moz-range-thumb]:shadow-lg
-                [&::-moz-range-thumb]:relative
-                [&::-moz-range-thumb]:z-20"
-            />
+            <div className="flex justify-between text-[11px] text-[var(--helperText)] opacity-70 m-0">
+              <span>Bad</span>
+              <span>Great</span>
+            </div>
           </div>
 
-          <div className="flex justify-between text-[11px] text-[var(--helperText)] opacity-70 m-0 ">
-            <span>Bad</span>
-            <span>Great</span>
-          </div>
-
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
